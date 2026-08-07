@@ -1,0 +1,23 @@
+.containerBotonera {
+margin: 20px auto;
+
+.botonera {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 20px auto;
+
+
+    button {
+        color: White;
+        background-color: #5e0347;
+        padding: 4px 12px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+}
