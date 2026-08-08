@@ -1,75 +1,74 @@
-# Mini Dashboard y Ecommerce en React con Firebase
+# Mini Dashboard y Ecommerce en React con Firebase 2
 
 ## Descripción del Proyecto
 
-Esta aplicación es una tienda/mini dashboard interactivo desarrollado con React, Vite, Sass Modules y **Firebase (Cloud Firestore)**. El objetivo principal del proyecto es implementar un sistema completo de navegación y control de acceso utilizando **React Router DOM**, abarcando desde rutas públicas estáticas hasta rutas dinámicas que consumen datos en tiempo real desde la base de datos de Firebase, una vista de inicio de sesión dedicada (`/login`), una **ruta protegida** (`/checkout`) mediante componentes guardianes (`ProtectedRoute`), y un sistema de autenticación global con `AuthContext`.
+Esta aplicación es una tienda y mini dashboard interactivo desarrollado con React, Vite, Sass Modules y **Firebase (Cloud Firestore)**. El proyecto implementa un sistema de navegación con **React Router DOM** (rutas públicas, dinámicas y protegidas con `ProtectedRoute` y `AuthContext`), sumado a una integración completa con Cloud Firestore para la gestión de datos en tiempo real y operaciones CRUD.
 
-Este proyecto fue desarrollado poniendo en práctica:
+Para cumplir con la consigna, la pantalla de inicio integra un **Panel de Pruebas CRUD (`AdminPanel`)** que permite ejecutar de forma visual todas las escrituras y actualizaciones en la base de datos, reflejando las modificaciones de manera instantánea en la interfaz sin necesidad de recargar la página.
 
-* **Integración con Firebase / Cloud Firestore:** Conexión de la aplicación a una base de datos en la nube para la lectura y gestión del catálogo de productos de forma dinámica (`collection`, `getDocs`, `doc`, `getDoc`, `query`, `where`).
-* **Configuración del Enrutador:** Uso de `BrowserRouter`, `Routes` y `Route` como arquitectura base de navegación.
-* **Layouts y Rutas Anidadas:** Estructuración de páginas hijas mediante `<Outlet />` dentro de un layout principal con navegación fija (`Header` y `Footer`).
-* **Navegación Declarativa e Imperativa:** Uso de componentes `<Link>` para la barra de navegación y el hook `useNavigate` para navegación programática.
-* **Rutas Dinámicas:** Captura y lectura de parámetros de URL mediante `useParams` para consultar en Firestore y renderizar la vista detallada de productos (`/producto/:id`).
-* **Rutas Protegidas y Redirección Post-Login:** Uso de `<Navigate />` y `useLocation` dentro de un componente `ProtectedRoute` para restringir el acceso a la vista `/checkout`, preservando la ubicación de origen para redirigir automáticamente al usuario tras autenticarse con éxito.
-* **Gestión de Autenticación y Context:** Implementación de `AuthContext` para compartir el estado de inicio de sesión (`isLoggedIn`) en toda la aplicación.
+---
+
+## Operaciones CRUD e Integración con Firestore
+
+El proyecto implementa todas las operaciones fundamentales sobre la colección `productos` en Cloud Firestore:
+
+* **Lectura de Datos:**
+  * **Un único documento por ID (`getDoc`):** Implementado en la vista de detalle de producto (`Producto.jsx`) mediante parámetros dinámicos de URL (`/producto/:id`).
+  * **Escucha en tiempo real (`onSnapshot`):** Utilizado en la vista principal (`Inicio.jsx`) y en el panel de control (`AdminPanel.jsx`). Permite suscribirse a los cambios de la colección para que la interfaz agregue, modifique o borre tarjetas automáticamente ante cualquier evento en Firestore.
+
+* **Inserción de Datos:**
+  * **Con ID automático (`addDoc`):** Permite crear un nuevo documento dentro de la colección `productos` asignando un identificador aleatorio generado por Firebase.
+  * **Con ID definido (`setDoc`):** Permite crear o reemplazar un documento especificando manualmente su identificador único (por ejemplo, `producto001`).
+
+* **Actualización de Datos:**
+  * **Con `setDoc` y `{ merge: true }`:** Modifica o añade únicamente los campos especificados dentro de un documento existente sin sobrescribir el resto de sus propiedades.
+  * **Con `updateDoc`:** Actualiza campos específicos de un documento ya existente de forma directa.
+
+* **Eliminación de Datos:**
+  * **Con `deleteDoc`:** Elimina un documento específico mediante su ID. Al estar enlazado con la suscripción en tiempo real (`onSnapshot`), el elemento desaparece de la vista en vivo inmediatamente.
+
+* **Seguridad y Control de Acceso (Prueba de Reglas):**
+  * Se testeó el comportamiento de seguridad restrictivo (`allow write: if request.auth != null;`), comprobando que Firestore bloquea las peticiones no autenticadas en la consola del navegador (`Missing or insufficient permissions`).
+  * **Nota de Corrección:** Para facilitar la evaluación del proyecto, las reglas actuales de Firestore se mantienen con permisos de lectura y escritura habilitados (`allow read, write: if true;`), permitiendo probar libremente cada botón del panel CRUD sin bloqueos de permisos.
 
 ---
 
 ## Funcionalidades Implementadas
 
-* **Conexión a Firebase (Firestore):** Consumo del catálogo de productos directamente desde la colección `productos` en Cloud Firestore.
-* **Variables de Entorno Seguras:** Configuración del SDK de Firebase mediante variables de entorno local (`.env`) e integración con Vercel para deployments en producción.
-* **Layout Anidado (`MainLayout`):** Mantiene una estructura visual persistente con `Header` y `Footer` mientras el contenido dinámico cambia en el `<Outlet />`.
-* **Navegación por Páginas:** Rutas funcionales para `Inicio`, `Nosotros`, `Contacto` y `Login`.
-* **Detalle de Producto Dinámico (`/producto/:id`):** Mapeo de parámetros en la URL utilizando `useParams` para realizar búsquedas específicas por ID de documento en Firestore y renderizar el detalle.
-* **Formulario de Contacto Validado:** Manejo nativo de validación con HTML5 (`required`) a través del evento `onSubmit` del formulario y modal de confirmación de envío.
-* **Protección de Rutas (`ProtectedRoute`):** 
-  * Si un usuario no autenticado intenta ingresar a la ruta privada `/checkout` (ya sea por URL o desde la acción de compra/carrito), la aplicación lo intercepta con `<Navigate />` y lo redirige a `/login`.
-  * La página de `/login` detecta la ubicación previa mediante el estado del hook `useLocation` y, una vez iniciada la sesión, lo reenvía automáticamente a la pantalla de `/checkout`.
-* **Comportamiento Condicional de Usuario:**
-  * El `Header` cambia dinámicamente sus acciones mostrando "Iniciar Sesión" (link a `/login`) o el botón de "Cerrar Sesión".
-  * Los usuarios logueados pueden acceder libremente a la vista protegida de `/checkout` y confirmar sus compras.
+* **Panel de Pruebas CRUD (`AdminPanel`):** Botonera integrada en la pantalla principal para probar interactivamente `addDoc`, `setDoc`, `updateDoc`, `deleteDoc` y verificar la actualización en tiempo real con indicador de eventos.
+* **Suscripción Live (`onSnapshot`):** Sincronización continua entre la base de datos y la interfaz de usuario.
+* **Layout Anidado (`MainLayout`):** Estructura visual persistente con `Header` y `Footer` utilizando `<Outlet />`.
+* **Detalle de Producto Dinámico (`/producto/:id`):** Consulta por ID de documento mediante `useParams` y `getDoc`.
+* **Protección de Rutas (`ProtectedRoute`):** Intercepción y redirección inteligente de usuarios no autenticados que intentan ingresar a rutas privadas (`/checkout`).
+* **Variables de Entorno Seguras:** Configuración centralizada del SDK de Firebase mediante archivo `.env`.
 
 ---
 
 ## Estructura de Archivos Principal
 
-La arquitectura modular del proyecto se organiza de la siguiente manera:
-
 * `src/config/`:
-    * `firebaseConfig.js`: Configuración e inicialización del SDK de Firebase y Cloud Firestore.
+  * `firebaseConfig.js`: Inicialización y exportación centralizada de Firebase y Firestore (`db`).
 * `src/context/`:
-    * `AuthContext.jsx`: Proveedor del estado global de autenticación (`isLoggedIn`, `login`, `logout`).
-* `src/components/`: 
-    * `Header/`: Navegación principal con enlaces condicionales según el estado de sesión.
-    * `Footer/`: Pie de página estático.
-    * `MainLayout/`: Contenedor principal con `<Outlet />`.
-    * `ProtectedRoute/`: Componente guardián que evalúa la autenticación para proteger rutas privadas.
-    * `SuccessModal/`: Modal de confirmación para agregados al carrito con opción de navegación al checkout.
-    * `SuccessModalForm/`: Modal de confirmación para el envío del formulario de contacto.
-    * `ProductCard/`: Tarjeta visual para renderizar cada producto individual.
-    * `ProductDetail/`: Componente de presentación con la información detallada del producto.
-    * `Loader/`: Indicador visual de estado de carga.
+  * `AuthContext.jsx`: Proveedor del estado global de autenticación (`isLoggedIn`, `login`, `logout`).
+* `src/components/`:
+  * `AdminPanel/`: Botonera e interfaz de pruebas con todos los métodos CRUD de Firestore.
+  * `Header/`: Navegación principal con enlaces condicionales según estado de sesión.
+  * `Footer/`: Pie de página.
+  * `MainLayout/`: Contenedor principal con `<Outlet />`.
+  * `ProtectedRoute/`: Componente guardián de rutas privadas.
+  * `ProductCard/`: Tarjeta visual para renderizar cada producto individual.
+  * `ProductDetail/`: Vista detallada de la información del producto.
+  * `Loader/`: Indicador visual de estado de carga.
 * `src/pages/`:
-    * `Inicio.jsx`: Vista principal que consulta la colección de productos en Firebase Firestore.
-    * `Nosotros.jsx`: Información institucional.
-    * `Contacto.jsx`: Vista de contacto con formulario y validación nativa.
-    * `Producto.jsx`: Vista dinámica (`/producto/:id`) que busca el documento por ID en Firestore y renderiza el `ProductDetail`.
-    * `Login.jsx`: Página de inicio de sesión pública con redirección inteligente post-login.
-    * `Checkout.jsx`: Vista protegida privada a la que solo se accede estando autenticado.
-* `src/styles/`: Módulos Sass (`Pages.module.scss`) y estilos globales para el encapsulamiento de diseño.
+  * `Inicio.jsx`: Vista principal que suscribe la colección de productos en tiempo real (`onSnapshot`) e integra el `AdminPanel`.
+  * `Producto.jsx`: Vista dinámica (`/producto/:id`) con lectura por ID individual (`getDoc`).
+  * `Contacto.jsx`: Vista de contacto con validación nativa y modal de confirmación.
+  * `Login.jsx`: Página de inicio de sesión con redirección post-login.
+  * `Checkout.jsx`: Vista protegida privada.
+* `src/styles/`: Estilos globales y módulos Sass (`.module.scss`).
 
 ---
 
-## Alcance del Proyecto (Fuera de la Consigna)
-
-Con el fin de mantener el foco exclusivo en los objetivos de la entrega (**Enrutamiento, navegación, rutas protegidas e integración con base de datos NoSQL**), la aplicación **no incluye**:
-
-* **Vista de Carrito de Compras Extensa (`/cart`):** Se priorizó el flujo directo hacia la vista protegida de confirmación/checkout (`/checkout`).
-* **Pasarela de Pagos Real:** La autenticación y la simulación de cobro son flujos controlados del lado del cliente.
-
----
 
 ## Instrucciones para Ejecutar el Proyecto Localmente
 
@@ -77,7 +76,7 @@ Para clonar, instalar las dependencias y ejecutar este proyecto en tu entorno lo
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone <https://github.com/andreaguinder/react-181751-modulo-3-unidad-1-firebase-tarea-guinder-andrea.git>
+   git clone <https://github.com/andreaguinder/react-181751-modulo-3-unidad-2-firebase-tarea-2-guinder-andrea.git>
 
 2. **Ingresar a la carpeta del proyecto**
 Luego moverse del directorio que se creó con el nombre del proyecto:
@@ -113,7 +112,7 @@ Estudiante: Andrea Guinder
 
 Curso: React (Comisión 181751)
 
-Módulo 3 - Unidad 1: Firebase- Tarea N° 1
+Módulo 3 - Unidad 2: Firebase- Tarea N° 2
 
 Institución: Universidad Tecnológica Nacional
 
