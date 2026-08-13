@@ -6,7 +6,7 @@ import styles from "./AdminPanel.module.scss";
 
 const AdminPanel = () => {
   const [productos, setProductos] = useState([]);
-  const [ultimoCambio, setUltimoCambio] = useState(''); // Estado para feedback visual
+  const [ultimoCambio, setUltimoCambio] = useState('');
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -42,7 +42,7 @@ const AdminPanel = () => {
 
   const handleSetDocumentoDefinido = async () => {
     try {
-      // Sintaxis corregida: doc(db, 'productos', 'ID')
+
       await setDoc(doc(db, "productos", "4LLO3ASeB77NDgJT0nvA"), {
         title: "CELESTE",
         price: 15.2,
@@ -98,7 +98,6 @@ const AdminPanel = () => {
         <button onClick={handleDeleteDocumento}>Borro producto con deleteDoc</button>
       </div>
 
-      {/* Cartel de confirmación visual en rojo */}
       {ultimoCambio && (
         <p style={{ color: '#d32f2f', fontWeight: 'bold', marginTop: '10px' }}>
           Último cambio en tiempo real: {ultimoCambio}
